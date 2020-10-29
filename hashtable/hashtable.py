@@ -6,7 +6,7 @@ class HashTableEntry:
         self.key = key
         self.value = value
         self.next = None
-
+        
 
 # Hash table can't have fewer than this many slots
 MIN_CAPACITY = 8
@@ -22,6 +22,8 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
+        self.capacity = capacity
+        self.head = None
 
 
     def get_num_slots(self):
@@ -54,6 +56,17 @@ class HashTable:
         """
 
         # Your code here
+        #     hash := FNV_offset_basis
+        key = 14695981039346656037
+
+        # for each byte_of_data to be hashed do
+        for x in key:
+        #     hash := hash × FNV_prime
+            x = x * 1099511628211
+        #     hash := hash XOR byte_of_data
+            x = x ^ key
+
+        return x 
 
 
     def djb2(self, key):
@@ -70,8 +83,8 @@ class HashTable:
         Take an arbitrary key and return a valid integer index
         between within the storage capacity of the hash table.
         """
-        #return self.fnv1(key) % self.capacity
-        return self.djb2(key) % self.capacity
+        return self.fnv1(key) % self.capacity
+        #return self.djb2(key) % self.capacity
 
     def put(self, key, value):
         """
@@ -82,7 +95,11 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        hashed_key = self.fnv1(key)
+        idx = hashed_key % self.capacity
+        new_node = HashTableEntry(idx, value)
+        new_node.next = self.head
+        self.head = new_node
 
     def delete(self, key):
         """
@@ -93,6 +110,42 @@ class HashTable:
         Implement this.
         """
         # Your code here
+         # If linked list is empty 
+        if self.head == None: 
+            return 
+  
+        # Store head node 
+        temp = self.head 
+  
+        # If head needs to be removed
+        hashed_key = self.fnv1(key)
+        idx = hashed_key % self.capacity
+        if idx == 0: 
+            self.head = temp.next
+            temp = None
+            return 
+  
+        # Find previous node of the node to be deleted 
+        for i in range(idx -1 ): 
+            temp = temp.next
+            if temp is None: 
+                break
+  
+        # If position is more than number of nodes 
+        if temp is None: 
+            return 
+        if temp.next is None: 
+            return 
+  
+        # Node temp.next is the node to be deleted 
+        # store pointer to the next of node to be deleted 
+        next = temp.next.next
+  
+        # Unlink the node from linked list 
+        temp.next = None
+  
+        temp.next = next 
+
 
 
     def get(self, key):
@@ -105,7 +158,22 @@ class HashTable:
         """
         # Your code here
 
-
+        hashed_key = self.fnv1(key)
+        idx = hashed_key % self.capacity
+        current = self.head  # Initialise temp 
+        count = 0  # Index of current node 
+  
+        # Loop while end of linked list is not reached 
+        while (current): 
+            if (count == idx): 
+                return current.value 
+            count += 1
+            current = current.next
+  
+        # if we get to this line, the caller was asking 
+        # for a non-existent element so we assert fail 
+        assert(false) 
+        return None
     def resize(self, new_capacity):
         """
         Changes the capacity of the hash table and
