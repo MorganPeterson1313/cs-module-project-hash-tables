@@ -24,7 +24,11 @@ class HashTable:
         # Your code here
         self.capacity = capacity
         self.head = None
+        #for load capacity per entry
+        self.count = 0
+        self.storage = [None for i in range(capacity)]
 
+        
 
     def get_num_slots(self):
         """
@@ -46,6 +50,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        #count
 
 
     def fnv1(self, key):
@@ -57,16 +62,19 @@ class HashTable:
 
         # Your code here
         #     hash := FNV_offset_basis
-        key = 14695981039346656037
-
+        
+        if not isinstance(key, bytes):
+            key = key.encode('UTF-8', 'ignore')
         # for each byte_of_data to be hashed do
+        hash = 14695981039346656037
         for x in key:
+            hash ^= x
         #     hash := hash × FNV_prime
-            x = x * 1099511628211
+            hash *= 1099511628211
         #     hash := hash XOR byte_of_data
-            x = x ^ key
+           
 
-        return x 
+        return hash 
 
 
     def djb2(self, key):
@@ -94,12 +102,15 @@ class HashTable:
 
         Implement this.
         """
+        
         # Your code here
-        hashed_key = self.fnv1(key)
-        idx = hashed_key % self.capacity
-        new_node = HashTableEntry(idx, value)
-        new_node.next = self.head
-        self.head = new_node
+        # hashed_key = self.fnv1(key)
+        # idx = hashed_key % self.capacity
+        idx = self.hash_index(key)
+        print(idx % self.capacity, 'put')
+        self.storage[idx] = HashTableEntry(key, value)
+        # new_node.next = self.head
+        # self.head = new_node
 
     def delete(self, key):
         """
@@ -108,43 +119,46 @@ class HashTable:
         Print a warning if the key is not found.
 
         Implement this.
+
         """
+        idx = self.hash_index(key)
+        self.storage[idx].value= None
         # Your code here
          # If linked list is empty 
-        if self.head == None: 
-            return 
+        # if self.head == None: 
+        #     return 
   
-        # Store head node 
-        temp = self.head 
+        # # Store head node 
+        # temp = self.head 
   
-        # If head needs to be removed
-        hashed_key = self.fnv1(key)
-        idx = hashed_key % self.capacity
-        if idx == 0: 
-            self.head = temp.next
-            temp = None
-            return 
+        # # If head needs to be removed
+        # hashed_key = self.fnv1(key)
+        # idx = hashed_key % self.capacity
+        # if idx == 0: 
+        #     self.head = temp.next
+        #     temp = None
+        #     return 
   
-        # Find previous node of the node to be deleted 
-        for i in range(idx -1 ): 
-            temp = temp.next
-            if temp is None: 
-                break
+        # # Find previous node of the node to be deleted 
+        # for i in range(idx -1 ): 
+        #     temp = temp.next
+        #     if temp is None: 
+        #         break
   
-        # If position is more than number of nodes 
-        if temp is None: 
-            return 
-        if temp.next is None: 
-            return 
+        # # If position is more than number of nodes 
+        # if temp is None: 
+        #     return 
+        # if temp.next is None: 
+        #     return 
   
-        # Node temp.next is the node to be deleted 
-        # store pointer to the next of node to be deleted 
-        next = temp.next.next
+        # # Node temp.next is the node to be deleted 
+        # # store pointer to the next of node to be deleted 
+        # next = temp.next.next
   
-        # Unlink the node from linked list 
-        temp.next = None
+        # # Unlink the node from linked list 
+        # temp.next = None
   
-        temp.next = next 
+        # temp.next = next 
 
 
 
@@ -157,23 +171,26 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
-        hashed_key = self.fnv1(key)
-        idx = hashed_key % self.capacity
-        current = self.head  # Initialise temp 
-        count = 0  # Index of current node 
+        idx = self.hash_index(key)
+        print(idx, 'get')
+        return self.storage[idx].value
+        # hashed_key = self.fnv1(key)
+        # idx = hashed_key % self.capacity
+        # idx = self.hash_index
+        # current = self.head  # Initialise temp 
+        # count = idx  # Index of current node 
   
-        # Loop while end of linked list is not reached 
-        while (current): 
-            if (count == idx): 
-                return current.value 
-            count += 1
-            current = current.next
+        # # Loop while end of linked list is not reached 
+        # while (current): 
+        #     if (count == idx): 
+        #         return current.value 
+        #     count += 1
+        #     current = current.next
   
         # if we get to this line, the caller was asking 
         # for a non-existent element so we assert fail 
-        assert(false) 
-        return None
+        # assert(false) 
+        # return None
     def resize(self, new_capacity):
         """
         Changes the capacity of the hash table and
