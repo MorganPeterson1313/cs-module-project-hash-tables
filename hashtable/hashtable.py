@@ -3,9 +3,46 @@ class HashTableEntry:
     Linked List hash table key/value pair
     """
     def __init__(self, key, value):
-        self.key = key
-        self.value = value
-        self.next = None
+        self.head = self.Node((key, value))
+
+    def add_to_head(self, key,value):
+        node = Node((key, value))
+        node.next = self.head
+        self.head = node
+            
+
+    def delete(self,key):
+        if self.head.value[0] == key:
+            node = self.head.value
+            self.head = self.head.next
+            return node
+        else:
+            node = self.head
+            while node.next is not None:
+                if node.next.value[0] == key:
+                    next_node = node.next.value
+                    node.next = node.next.next
+                    
+                    return next_node
+                node = node.next
+
+
+
+    def find(self,key):
+        node = self.head
+        while node is not None:
+            if node.value[0] == key:
+                return node.value[1]
+            node = node.next
+        return None
+
+
+    
+    class Node:
+        def __init__(self, value):
+            self.value = value
+            self.next= None
+        
         
 
 # Hash table can't have fewer than this many slots
@@ -23,7 +60,6 @@ class HashTable:
     def __init__(self, capacity):
         # Your code here
         self.capacity = capacity
-        self.head = None
         #for load capacity per entry
         self.count = 0
         self.storage = [None for i in range(capacity)]
@@ -41,6 +77,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        return len(self.storage)
 
 
     def get_load_factor(self):
@@ -51,7 +88,7 @@ class HashTable:
         """
         # Your code here
         #count
-
+        return self.count/self.capacity
 
     def fnv1(self, key):
         """
@@ -106,9 +143,23 @@ class HashTable:
         # Your code here
         # hashed_key = self.fnv1(key)
         # idx = hashed_key % self.capacity
+        if self.get_load_factor() >= 0.70:
+            self.resize(self.capacity*2)
+
         idx = self.hash_index(key)
-        print(idx % self.capacity, 'put')
-        self.storage[idx] = HashTableEntry(key, value)
+      
+        if self.storage[idx]!= None and self.storage[idx].find(key) is None:
+            self.storage.add_to_head(key, value)
+        elif self.storage[idx] is not None:
+            node = self.storage[idx].head
+            while node is not None:
+                if node.value[0] == key:
+                    node.value = (key,value)
+                node = node.next
+        else:
+            self.storage[idx] = HashTableEntry(key, value)
+        self.count+=1
+
         # new_node.next = self.head
         # self.head = new_node
 
@@ -122,44 +173,23 @@ class HashTable:
 
         """
         idx = self.hash_index(key)
-        self.storage[idx].value= None
-        # Your code here
-         # If linked list is empty 
-        # if self.head == None: 
-        #     return 
-  
-        # # Store head node 
-        # temp = self.head 
-  
-        # # If head needs to be removed
-        # hashed_key = self.fnv1(key)
-        # idx = hashed_key % self.capacity
-        # if idx == 0: 
-        #     self.head = temp.next
-        #     temp = None
-        #     return 
-  
-        # # Find previous node of the node to be deleted 
-        # for i in range(idx -1 ): 
-        #     temp = temp.next
-        #     if temp is None: 
-        #         break
-  
-        # # If position is more than number of nodes 
-        # if temp is None: 
-        #     return 
-        # if temp.next is None: 
-        #     return 
-  
-        # # Node temp.next is the node to be deleted 
-        # # store pointer to the next of node to be deleted 
-        # next = temp.next.next
-  
-        # # Unlink the node from linked list 
-        # temp.next = None
-  
-        # temp.next = next 
+        if self.storage[idx] == None:
+            print("warning nothing to delete")
+            return None
+        else:
+            # self.storage[idx].value = None
+            # self.count-=1
+            node = self.storage[idx].delete(key)
+            if node is None:
+                print("node not found")
+            else:
+                self.count -= 1
+            if self.storage[idx].head == None:
+                self.storage[idx] = None
 
+
+        if self.get_load_factor() <= 0.2:
+            self.resize(self.capacity//2)
 
 
     def get(self, key):
@@ -172,25 +202,11 @@ class HashTable:
         """
         # Your code here
         idx = self.hash_index(key)
-        print(idx, 'get')
-        return self.storage[idx].value
-        # hashed_key = self.fnv1(key)
-        # idx = hashed_key % self.capacity
-        # idx = self.hash_index
-        # current = self.head  # Initialise temp 
-        # count = idx  # Index of current node 
-  
-        # # Loop while end of linked list is not reached 
-        # while (current): 
-        #     if (count == idx): 
-        #         return current.value 
-        #     count += 1
-        #     current = current.next
-  
-        # if we get to this line, the caller was asking 
-        # for a non-existent element so we assert fail 
-        # assert(false) 
-        # return None
+        if self.storage[idx] is not None:
+            return self.storage[idx].find(key)
+        else:
+            return None
+       
     def resize(self, new_capacity):
         """
         Changes the capacity of the hash table and
@@ -199,6 +215,18 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        x = []
+
+        for i in self.storage:
+            if i is not None:
+                node = i.head
+                while node is not None:
+                    x.append(node.value)
+                    node = node.next
+        self.capacity = new_capacity
+        self.storage = [None for i in range(self.capacity)]
+        for i in x:
+            self.put(i[0], i[1])
 
 
 
